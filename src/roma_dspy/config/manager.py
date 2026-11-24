@@ -39,6 +39,7 @@ class ConfigManager:
 
         self._cache: Dict[str, DictConfig] = {}
         self._loaded_profile_name: Optional[str] = None
+        self._dotenv_loaded: bool = False
 
     def load_config(
         self,
@@ -75,6 +76,9 @@ class ConfigManager:
             f"Loading config: path={config_path}, profile={profile}, "
             f"overrides={overrides}, env_prefix={env_prefix}"
         )
+
+        # Load .env once (if available) so oc.env interpolations can pick up local defaults.
+        self._load_dotenv_if_available()
 
         # Step 1: Start from an empty OmegaConf and let Pydantic apply defaults
         # later. This avoids type conflicts when merging YAML into a structured
@@ -150,6 +154,36 @@ class ConfigManager:
             return config
         except Exception as e:
             raise ValueError(f"Failed to load YAML config from {path}: {e}")
+
+    def _load_dotenv_if_available(self) -> None:
+        """Load nearest .env file once, if python-dotenv is available."""
+        if self._dotenv_loaded:
+            return
+
+        try:
+            from dotenv import load_dotenv
+        except Exception:
+            self._dotenv_loaded = True
+            return
+
+        search_roots = [Path.cwd(), self.config_dir, self.config_dir.parent]
+        visited: set[str] = set()
+
+        for root in search_roots:
+            for candidate in [root, *root.parents]:
+                key = str(candidate.resolve())
+                if key in visited:
+                    continue
+                visited.add(key)
+
+                env_path = candidate / ".env"
+                if env_path.exists():
+                    load_dotenv(env_path, override=False)
+                    logger.debug(f"Loaded environment variables from {env_path}")
+                    self._dotenv_loaded = True
+                    return
+
+        self._dotenv_loaded = True
 
     def _load_profile(self, profile_name: str) -> DictConfig:
         """

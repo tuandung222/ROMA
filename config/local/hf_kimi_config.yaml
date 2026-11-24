@@ -1,0 +1,84 @@
+project: roma-dspy
+version: "0.1.0"
+environment: ${oc.env:ROMA_ENV,development}
+
+agents:
+  atomizer:
+    llm:
+      model: huggingface/moonshotai/Kimi-K2.5
+      api_key: ${oc.env:HF_TOKEN,null}
+      temperature: 0.1
+
+  planner:
+    llm:
+      model: huggingface/moonshotai/Kimi-K2.5
+      api_key: ${oc.env:HF_TOKEN,null}
+      temperature: 0.3
+    agent_config:
+      max_subtasks: 15
+
+  executor:
+    llm:
+      model: huggingface/moonshotai/Kimi-K2.5
+      api_key: ${oc.env:HF_TOKEN,null}
+      temperature: 0.7
+      max_tokens: 3000
+
+  aggregator:
+    llm:
+      model: huggingface/moonshotai/Kimi-K2.5
+      api_key: ${oc.env:HF_TOKEN,null}
+      temperature: 0.3
+
+  verifier:
+    llm:
+      model: huggingface/moonshotai/Kimi-K2.5
+      api_key: ${oc.env:HF_TOKEN,null}
+      temperature: 0.1
+
+runtime:
+  timeout: ${oc.env:ROMA_RUNTIME_TIMEOUT,900}
+  verbose: ${oc.env:ROMA_VERBOSE,false}
+  max_depth: ${oc.env:ROMA_MAX_DEPTH,5}
+  enable_logging: ${oc.env:ROMA_ENABLE_LOGGING,false}
+  log_level: ${oc.env:ROMA_LOG_LEVEL,INFO}
+  cache:
+    enabled: ${oc.env:ROMA_CACHE_ENABLED,true}
+    enable_disk_cache: ${oc.env:ROMA_CACHE_DISK,true}
+    enable_memory_cache: ${oc.env:ROMA_CACHE_MEMORY,true}
+    disk_cache_dir: ${oc.env:DSPY_CACHE_DIR,.cache/dspy}
+    disk_size_limit_bytes: 30000000000
+    memory_max_entries: 1000000
+
+resilience:
+  retry_strategy: ${oc.env:ROMA_RETRY_STRATEGY,exponential_backoff}
+  max_retries: ${oc.env:ROMA_MAX_RETRIES,3}
+  checkpoint:
+    enabled: ${oc.env:ROMA_CHECKPOINT_ENABLED,true}
+    storage_path: ${oc.env:ROMA_CHECKPOINT_PATH,.checkpoints}
+    max_checkpoints: ${oc.env:ROMA_MAX_CHECKPOINTS,10}
+    max_age_hours: ${oc.env:ROMA_CHECKPOINT_MAX_AGE_HOURS,24.0}
+    compress_checkpoints: ${oc.env:ROMA_CHECKPOINT_COMPRESS,true}
+    verify_integrity: ${oc.env:ROMA_CHECKPOINT_VERIFY,true}
+
+storage:
+  base_path: ${oc.env:STORAGE_BASE_PATH,.tmp/sentient}
+  max_file_size: 104857600
+  buffer_size: 1048576
+  postgres:
+    enabled: ${oc.env:POSTGRES_ENABLED,false}
+    connection_url: ${oc.env:DATABASE_URL,postgresql+asyncpg://localhost/roma_dspy}
+    pool_size: ${oc.env:POSTGRES_POOL_SIZE,5}
+    max_overflow: ${oc.env:POSTGRES_MAX_OVERFLOW,10}
+    pool_timeout: ${oc.env:POSTGRES_POOL_TIMEOUT,30.0}
+    echo_sql: ${oc.env:SQL_ECHO,false}
+
+observability:
+  mlflow:
+    enabled: ${oc.env:MLFLOW_ENABLED,false}
+    tracking_uri: ${oc.env:MLFLOW_TRACKING_URI,http://127.0.0.1:5000}
+    experiment_name: ${oc.env:MLFLOW_EXPERIMENT,ROMA-DSPy}
+    log_traces: true
+    log_traces_from_compile: false
+    log_compiles: true
+    log_evals: true

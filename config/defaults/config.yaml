@@ -6,41 +6,47 @@ version: "0.1.0"
 environment: ${oc.env:ROMA_ENV,development}
 
 # Override agent defaults where needed
+# Flexible provider/model selection via environment variables.
+# Default provider: Hugging Face Inference (Kimi-K2.5).
+# Override globally with ROMA_DEFAULT_* or per-agent with ROMA_<AGENT>_* vars.
 agents:
-  # Use Gemini 2.5 Flash for fast agents (atomizer, planner, aggregator, verifier)
   atomizer:
     llm:
-      model: google/gemini-2.5-flash
-      base_url: https://openrouter.ai/api/v1
-      temperature: 0.1
+      model: ${oc.env:ROMA_ATOMIZER_MODEL,${oc.env:ROMA_DEFAULT_MODEL,huggingface/moonshotai/Kimi-K2.5}}
+      api_key: ${oc.env:ROMA_ATOMIZER_API_KEY,${oc.env:ROMA_DEFAULT_API_KEY,${oc.env:HF_TOKEN,null}}}
+      base_url: ${oc.env:ROMA_ATOMIZER_BASE_URL,${oc.env:ROMA_DEFAULT_BASE_URL,null}}
+      temperature: ${oc.env:ROMA_ATOMIZER_TEMPERATURE,0.1}
 
   planner:
     llm:
-      model: google/gemini-2.5-flash
-      base_url: https://openrouter.ai/api/v1
-      temperature: 0.3
+      model: ${oc.env:ROMA_PLANNER_MODEL,${oc.env:ROMA_DEFAULT_MODEL,huggingface/moonshotai/Kimi-K2.5}}
+      api_key: ${oc.env:ROMA_PLANNER_API_KEY,${oc.env:ROMA_DEFAULT_API_KEY,${oc.env:HF_TOKEN,null}}}
+      base_url: ${oc.env:ROMA_PLANNER_BASE_URL,${oc.env:ROMA_DEFAULT_BASE_URL,null}}
+      temperature: ${oc.env:ROMA_PLANNER_TEMPERATURE,0.3}
     agent_config:
       max_subtasks: 15  # Override default 10
 
-  # Use Claude Sonnet 4.5 for executor (most complex reasoning)
   executor:
     llm:
-      model: anthropic/claude-sonnet-4.5
-      base_url: https://openrouter.ai/api/v1
-      temperature: 0.7
-      max_tokens: 4000
+      model: ${oc.env:ROMA_EXECUTOR_MODEL,${oc.env:ROMA_DEFAULT_MODEL,huggingface/moonshotai/Kimi-K2.5}}
+      api_key: ${oc.env:ROMA_EXECUTOR_API_KEY,${oc.env:ROMA_DEFAULT_API_KEY,${oc.env:HF_TOKEN,null}}}
+      base_url: ${oc.env:ROMA_EXECUTOR_BASE_URL,${oc.env:ROMA_DEFAULT_BASE_URL,null}}
+      temperature: ${oc.env:ROMA_EXECUTOR_TEMPERATURE,0.7}
+      max_tokens: ${oc.env:ROMA_EXECUTOR_MAX_TOKENS,4000}
 
   aggregator:
     llm:
-      model: google/gemini-2.5-flash
-      base_url: https://openrouter.ai/api/v1
-      temperature: 0.3
+      model: ${oc.env:ROMA_AGGREGATOR_MODEL,${oc.env:ROMA_DEFAULT_MODEL,huggingface/moonshotai/Kimi-K2.5}}
+      api_key: ${oc.env:ROMA_AGGREGATOR_API_KEY,${oc.env:ROMA_DEFAULT_API_KEY,${oc.env:HF_TOKEN,null}}}
+      base_url: ${oc.env:ROMA_AGGREGATOR_BASE_URL,${oc.env:ROMA_DEFAULT_BASE_URL,null}}
+      temperature: ${oc.env:ROMA_AGGREGATOR_TEMPERATURE,0.3}
 
   verifier:
     llm:
-      model: google/gemini-2.5-flash
-      base_url: https://openrouter.ai/api/v1
-      temperature: 0.1
+      model: ${oc.env:ROMA_VERIFIER_MODEL,${oc.env:ROMA_DEFAULT_MODEL,huggingface/moonshotai/Kimi-K2.5}}
+      api_key: ${oc.env:ROMA_VERIFIER_API_KEY,${oc.env:ROMA_DEFAULT_API_KEY,${oc.env:HF_TOKEN,null}}}
+      base_url: ${oc.env:ROMA_VERIFIER_BASE_URL,${oc.env:ROMA_DEFAULT_BASE_URL,null}}
+      temperature: ${oc.env:ROMA_VERIFIER_TEMPERATURE,0.1}
 
 # Runtime configuration overrides
 runtime:
